@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Order Page</title>
+    <script>
+        window.onload = function () {
+            // Alert the user to welcome them to the store
+            alert('Welcome to the store!');
+
+            // Get user's name, item, and quantity via prompts
+            let name = prompt('Please enter your name:');
+            let item = prompt('What item would you like to order?');
+            let quantity;
+
+            // Ensure quantity is between 1 and 99
+            do {
+                quantity = prompt('How many would you like to order? (1-99)');
+            } while (quantity < 1 || quantity > 99);
+
+            // Calculate the arrival date (7 days from the current date)
+            const currentDate = new Date();
+            const arrivalDate = new Date();
+            arrivalDate.setDate(currentDate.getDate() + 7);
+
+            // Time-based greeting
+            let greeting;
+            const currentHour = currentDate.getHours();
+            if (currentHour < 12) {
+                greeting = 'Good morning';
+            } else if (currentHour < 18) {
+                greeting = 'Good afternoon';
+            } else {
+                greeting = 'Good evening';
+            }
+
+            // Display greeting and order details on the webpage
+            document.getElementById('greeting').innerText = `${greeting} ${name}, thank you for ordering!`;
+            document.getElementById('orderDetails').innerHTML = `
+                You ordered ${quantity} ${item}(s).<br>
+                Your expected delivery date is: ${arrivalDate.toDateString()}.
+            `;
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1 id="greeting"></h1>
+        <p id="orderDetails"></p>
+    </div>
+</body>
+</html>
