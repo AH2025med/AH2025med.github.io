@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Registration</title>
+    <!-- Bootstrap CSS for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin-top: 50px;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: red;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Register Your Product</h2>
+        <form id="registrationForm">
+            <div class="mb-3">
+                <label for="firstName" class="form-label">First Name</label>
+                <input type="text" class="form-control" id="firstName" required>
+                <div id="firstNameError" class="error"></div>
+            </div>
+            <div class="mb-3">
+                <label for="lastName" class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="lastName" required>
+                <div id="lastNameError" class="error"></div>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" required>
+                <div id="emailError" class="error"></div>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" required>
+                <div id="passwordError" class="error"></div>
+            </div>
+            <div class="mb-3">
+                <label for="dob" class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" id="dob" required>
+                <div id="dobError" class="error"></div>
+            </div>
+            <button type="submit" class="btn btn-primary">Register</button>
+        </form>
+        <div id="result" class="mt-4 hidden">
+            <h3>Registration Successful</h3>
+            <p><strong>Name:</strong> <span id="name"></span></p>
+            <p><strong>Email:</strong> <span id="resultEmail"></span></p>
+            <p><strong>Password:</strong> <span id="resultPassword"></span></p>
+            <p><strong>Date of Birth:</strong> <span id="resultDOB"></span></p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('registrationForm');
+        const result = document.getElementById('result');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Get the form values
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const dob = document.getElementById('dob').value;
+
+            // Validate form inputs
+            let valid = validateForm(firstName, lastName, email, password, dob);
+
+            if (valid) {
+                // Create user object
+                const user = {
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email,
+                    password: password.replace(/./g, '*'),
+                    dob: dob
+                };
+
+                // Show results on the page
+                document.getElementById('name').innerText = `${user.firstName} ${user.lastName}`;
+                document.getElementById('resultEmail').innerText = user.email;
+                document.getElementById('resultPassword').innerText = user.password;
+                document.getElementById('resultDOB').innerText = user.dob;
+
+                result.classList.remove('hidden');
+            }
+        });
+
+        function validateForm(firstName, lastName, email, password, dob) {
+            let isValid = true;
+            clearErrors();
+
+            if (firstName === '') {
+                displayError('firstNameError', 'First name is required');
+                isValid = false;
+            }
+
+            if (lastName === '') {
+                displayError('lastNameError', 'Last name is required');
+                isValid = false;
+            }
+
+            if (email === '') {
+                displayError('emailError', 'Email is required');
+                isValid = false;
+            }
+
+            if (password === '' || !/[!?]/.test(password)) {
+                displayError('passwordError', 'Password must contain at least one special character (! or ?)');
+                isValid = false;
+            }
+
+            if (dob === '') {
+                displayError('dobError', 'Date of birth is required');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function displayError(elementId, message) {
+            document.getElementById(elementId).innerText = message;
+        }
+
+        function clearErrors() {
+            document.getElementById('firstNameError').innerText = '';
+            document.getElementById('lastNameError').innerText = '';
+            document.getElementById('emailError').innerText = '';
+            document.getElementById('passwordError').innerText = '';
+            document.getElementById('dobError').innerText = '';
+        }
+    </script>
+</body>
+</html>

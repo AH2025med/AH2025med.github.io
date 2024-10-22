@@ -6,27 +6,27 @@
     <title>Store Order Page</title>
     <script>
         window.onload = function () {
-            // Alert the user to welcome them to the store
+            // When the user loads the page, an alert welcomes them to the store
             alert('Welcome to the store!');
-
-            // Get user's name, item, and quantity via prompts
+            
+            // Prompting the user for their name, item they want to order, and the quantity
             let name = prompt('Please enter your name:');
             let item = prompt('What item would you like to order?');
-            let quantity;
+            let quantity = prompt('How many would you like to order? (Enter a number between 1 and 99)');
 
-            // Ensure quantity is between 1 and 99
-            do {
-                quantity = prompt('How many would you like to order? (1-99)');
-            } while (quantity < 1 || quantity > 99);
+            // Ensure the quantity is within the allowed range (1 to 99)
+            while (quantity < 1 || quantity > 99) {
+                quantity = prompt('Please enter a valid number of items between 1 and 99.');
+            }
 
-            // Calculate the arrival date (7 days from the current date)
-            const currentDate = new Date();
-            const arrivalDate = new Date();
+            // Calculate the expected arrival date by adding 7 days to the current date
+            let currentDate = new Date();
+            let arrivalDate = new Date();
             arrivalDate.setDate(currentDate.getDate() + 7);
 
-            // Time-based greeting
+            // Set the appropriate greeting based on the time of day
             let greeting;
-            const currentHour = currentDate.getHours();
+            let currentHour = currentDate.getHours();
             if (currentHour < 12) {
                 greeting = 'Good morning';
             } else if (currentHour < 18) {
@@ -35,12 +35,10 @@
                 greeting = 'Good evening';
             }
 
-            // Display greeting and order details on the webpage
-            document.getElementById('greeting').innerText = `${greeting} ${name}, thank you for ordering!`;
-            document.getElementById('orderDetails').innerHTML = `
-                You ordered ${quantity} ${item}(s).<br>
-                Your expected delivery date is: ${arrivalDate.toDateString()}.
-            `;
+            // Display the greeting, order summary, and expected delivery date on the web page
+            document.getElementById('greeting').innerText = greeting + ' ' + name + ', thank you for ordering!';
+            document.getElementById('orderDetails').innerHTML = 'You ordered ' + quantity + ' ' + item + '(s).' +
+                '<br>Your expected delivery date is: ' + arrivalDate.toDateString() + '.';
         };
     </script>
 </head>
