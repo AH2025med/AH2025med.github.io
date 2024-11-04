@@ -31,7 +31,7 @@
 <body>
     <div class="container">
         <h2>Register Your Product</h2>
-        <form id="registrationForm">
+        <form id="registrationForm" onsubmit="processForm(); return false;">
             <div class="mb-3">
                 <label for="firstName" class="form-label">First Name</label>
                 <input type="text" class="form-control" id="firstName" required>
@@ -69,24 +69,16 @@
     </div>
 
     <script>
-        const form = document.getElementById('registrationForm');
-        const result = document.getElementById('result');
-
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            // Get the form values
+        function processForm() {
             const firstName = document.getElementById('firstName').value;
             const lastName = document.getElementById('lastName').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const dob = document.getElementById('dob').value;
 
-            // Validate form inputs
             let valid = validateForm(firstName, lastName, email, password, dob);
 
             if (valid) {
-                // Create user object
                 const user = {
                     firstName: firstName,
                     lastName: lastName,
@@ -95,15 +87,14 @@
                     dob: dob
                 };
 
-                // Show results on the page
                 document.getElementById('name').innerText = `${user.firstName} ${user.lastName}`;
                 document.getElementById('resultEmail').innerText = user.email;
                 document.getElementById('resultPassword').innerText = user.password;
                 document.getElementById('resultDOB').innerText = user.dob;
 
-                result.classList.remove('hidden');
+                document.getElementById('result').classList.remove('hidden');
             }
-        });
+        }
 
         function validateForm(firstName, lastName, email, password, dob) {
             let isValid = true;
