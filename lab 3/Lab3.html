@@ -3,53 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lab 3 - The Struggle is Real: Learning to Code</title>
+    <title>Lab 3 - The Struggle of Learning to Code</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .jumbotron {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .container ul {
+            padding-left: 1.5rem;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
     <!-- Jumbotron -->
     <div class="jumbotron">
-        <h1>The Struggle is Real: Learning to Code</h1>
-        <p>A simple webpage about the ups and downs of programming.</p>
+        <h1 class="display-4">The Struggle is Real: Learning to Code</h1>
+        <p class="lead">An honest take on the ups and downs of programming.</p>
     </div>
 
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-light bg-light">
-        <a class="navbar-brand" href="#">Home</a>
-        <a class="navbar-brand" href="lab3.html">Lab 3</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">Home</a>
+            <a class="navbar-brand" href="lab3.html">Lab 3</a>
+        </div>
     </nav>
 
-    <!-- Paragraph -->
-    <div class="container">
-        <p>Learning to code is full of challenges. There are moments when nothing works, and you're stuck on a bug for hours. But when your code finally works, the feeling of achievement is amazing. It's a rollercoaster of frustration and success, but in the end, it’s always worth it.</p>
+    <!-- Content Section -->
+    <div class="container mt-4">
+        <p>
+            Learning to code can be a tough journey. There are moments when nothing seems to work, and bugs feel impossible to fix.
+            But when you finally solve that tricky issue, the sense of accomplishment is incredible. It's a rollercoaster of frustration and triumph,
+            but in the end, it’s worth every moment.
+        </p>
     </div>
 
-    <!-- List and Image in the same row -->
-    <div class="container">
-        <div class="row">
+    <!-- Features Section -->
+    <div class="container mt-5">
+        <div class="row align-items-center">
             <!-- List Column -->
             <div class="col-md-6">
+                <h5>Challenges Along the Way:</h5>
                 <ul>
-                    <li>Dealing with bugs</li>
-                    <li>Learning new languages</li>
-                    <li>Debugging</li>
+                    <li>Troubleshooting bugs that won't budge</li>
+                    <li>Picking up new programming languages</li>
+                    <li>Mastering debugging techniques</li>
                 </ul>
             </div>
             <!-- Image Column -->
             <div class="col-md-6 text-center">
-                <img src="https://via.placeholder.com/150" class="rounded" alt="Code Image">
+                <img src="https://via.placeholder.com/300" class="rounded shadow" alt="Code Struggles">
             </div>
         </div>
     </div>
 
-    <!-- Horizontal Rule with Date and Author -->
-    <div class="container">
+    <!-- Footer -->
+    <div class="footer mt-4">
         <hr>
-        <p>Date: September 28, 2024 | Author: Ahmed Hegazy</p>
+        <p>Published on: September 28, 2024 | Author: Ahmed Hegazy</p>
     </div>
 
-    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
