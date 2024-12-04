@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocktail List</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .cocktail-card {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .cocktail-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Cocktail List</h1>
+        <div class="row" id="cocktail-container">
+            <!-- Cocktails will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        const apiKey = "1"; // Test API key
+        const url = `https://www.thecocktaildb.com/api/json/v1/1/search.php?f=a`;  // Fetch cocktails starting with 'A'
+
+        async function fetchCocktails() {
+            try {
+                // Fetch data from the API
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // Log the response to see the structure
+                console.log("API Response:", data);
+
+                if (data.drinks && data.drinks.length > 0) {
+                    const cocktails = data.drinks;
+                    let cocktailsHtml = '';
+
+                    // Loop through the cocktails and construct HTML for each one
+                    cocktails.forEach(cocktail => {
+                        cocktailsHtml += `
+                            <div class="col-md-4">
+                                <div class="card cocktail-card">
+                                    <img src="${cocktail.strDrinkThumb}" class="card-img-top" alt="${cocktail.strDrink}">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${cocktail.strDrink}</h5>
+                                        <p class="card-text">${cocktail.strInstructions}</p>
+                                        <a href="https://www.thecocktaildb.com/drink/${cocktail.idDrink}" class="btn btn-primary" target="_blank">View Recipe</a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    // Insert the generated HTML into the cocktail container
+                    document.getElementById('cocktail-container').innerHTML = cocktailsHtml;
+                } else {
+                    // If no cocktails are returned
+                    document.getElementById('cocktail-container').innerHTML = '<p>No cocktails found.</p>';
+                }
+            } catch (error) {
+                // Handle errors
+                console.error("Error fetching cocktails:", error);
+                document.getElementById('cocktail-container').innerHTML = '<p>Error loading cocktails.</p>';
+            }
+        }
+
+        // Call the function to fetch and display the cocktails
+        fetchCocktails();
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
