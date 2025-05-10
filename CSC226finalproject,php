@@ -1,0 +1,368 @@
+<?php
+// SHOW ERRORS
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+session_start();
+
+// -- DATABASE CONNECTION --
+$host = 'localhost'; $db = 'greenplate'; $user = 'root'; $pass = ''; $charset = 'utf8mb4';
+$dsn  = "mysql:host=$host;dbname=$db;charset=$charset";
+$conn = new PDO($dsn, $user, $pass, [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+]);
+
+// -- AUTH HANDLERS --
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header('Location: greenplate.php');
+    exit;
+}
+if (isset($_POST['register'])) {
+    $stmt = $conn->prepare("INSERT INTO users(username,password) VALUES(?,?)");
+    $stmt->execute([$_POST['reg_username'], password_hash($_POST['reg_password'], PASSWORD_DEFAULT)]);
+    header('Location: greenplate.php');
+    exit;
+}
+if (isset($_POST['login'])) {
+    $stmt = $conn->prepare("SELECT id,password FROM users WHERE username=?");
+    $stmt->execute([$_POST['login_username']]);
+    $row = $stmt->fetch();
+    if ($row && password_verify($_POST['login_password'], $row['password'])) {
+        $_SESSION['user_id']  = $row['id'];
+        $_SESSION['username'] = $_POST['login_username'];
+        header('Location: greenplate.php?view=dashboard');
+        exit;
+    } else {
+        $error = 'Invalid credentials';
+    }
+}
+
+// -- DATA HANDLERS --
+if (isset($_POST['save_info'])) {
+    $stmt = $conn->prepare(
+        "REPLACE INTO user_info(user_id,age,height,weight,goal) VALUES(?,?,?,?,?)"
+    );
+    $stmt->execute([
+        $_SESSION['user_id'],
+        $_POST['age'],
+        $_POST['height'],
+        $_POST['weight'],
+        $_POST['goal'],
+    ]);
+    header('Location: greenplate.php?view=myinfo');
+    exit;
+}
+if (isset($_POST['save_weight_progress'])) {
+    $stmt = $conn->prepare(
+        "INSERT INTO progress_logs(user_id,log_date,weight_kg) VALUES(?,?,?)"
+    );
+    $stmt->execute([$_SESSION['user_id'], date('Y-m-d'), $_POST['weight_change']]);
+    header('Location: greenplate.php?view=myinfo');
+    exit;
+}
+// -- SAVE MEAL HANDLER with duplicate-check --
+if (isset($_POST['save_meal'])) {
+    $check = $conn->prepare(
+        "SELECT COUNT(*) FROM saved_meals WHERE user_id = ? AND meal_name = ?"
+    );
+    $check->execute([$_SESSION['user_id'], $_POST['meal_name']]);
+    if (!$check->fetchColumn()) {
+        $stmt = $conn->prepare(
+            "INSERT INTO saved_meals(user_id,meal_name,calories) VALUES(?,?,?)"
+        );
+        $stmt->execute([
+            $_SESSION['user_id'],
+            $_POST['meal_name'],
+            $_POST['calories'],
+        ]);
+    }
+    header('Location: greenplate.php?view=saved');
+    exit;
+}
+if (isset($_POST['remove_meal'])) {
+    $stmt = $conn->prepare("DELETE FROM saved_meals WHERE id = ? AND user_id = ?");
+    $stmt->execute([$_POST['remove_meal'], $_SESSION['user_id']]);
+    header('Location: greenplate.php?view=saved');
+    exit;
+}
+
+// -- REQUIRE LOGIN --
+if (empty($_SESSION['user_id'])): ?>
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>GreenPlate — Login/Register</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background:#f1f5f9; font-family:Arial,sans-serif; }
+    .card { max-width:500px; margin:80px auto; padding:20px; background:#fff; border-radius:8px; }
+    .btn-green { background:#2f9e44; color:#fff; border:none; width:100%; padding:10px; border-radius:4px; }
+  </style>
+</head><body>
+  <div class="card">
+    <h3 class="text-center">GreenPlate</h3>
+    <?php if (!empty($error)) echo "<div class='text-danger'>{$error}</div>"; ?>
+    <form method="POST">
+      <input name="reg_username" class="form-control mb-2" placeholder="Username" required>
+      <input name="reg_password" type="password" class="form-control mb-2" placeholder="Password" required>
+      <button name="register" class="btn-green">Sign Up</button>
+    </form>
+    <hr>
+    <form method="POST">
+      <input name="login_username" class="form-control mb-2" placeholder="Username" required>
+      <input name="login_password" type="password" class="form-control mb-2" placeholder="Password" required>
+      <button name="login" class="btn-green">Log In</button>
+    </form>
+  </div>
+</body></html>
+<?php exit; endif; ?>
+
+<?php
+// -- FETCH USER DATA --
+$uid = $_SESSION['user_id'];
+$stmt = $conn->prepare("SELECT age,height,weight,goal FROM user_info WHERE user_id = ?");
+$stmt->execute([$uid]);
+$user = $stmt->fetch() ?: ['age'=>0,'height'=>0,'weight'=>0,'goal'=>'maintain'];
+
+$stmt = $conn->prepare("SELECT log_date,weight_kg FROM progress_logs WHERE user_id = ? ORDER BY log_date");
+$stmt->execute([$uid]);
+$progress = $stmt->fetchAll();
+
+$stmt = $conn->prepare("SELECT id,meal_name,calories FROM saved_meals WHERE user_id = ?");
+$stmt->execute([$uid]);
+$saved = $stmt->fetchAll();
+
+// -- STATIC DATA --
+$mealPlan = [
+  ['name'=>'Bread Omelette','calories'=>70,'protein'=>'6g','img'=>'images/bread-omelette.jpg'],
+  ['name'=>'Breakfast Potatoes','calories'=>120,'protein'=>'0g','img'=>'images/breakfast-potatoes.jpg'],
+  ['name'=>'English Breakfast','calories'=>350,'protein'=>'20g','img'=>'images/english-breakfast.jpg'],
+];
+$recipes = [
+  ['name'=>'Bread Omelette','calories'=>70,'protein'=>'6g','img'=>'images/bread-omelette.jpg','link'=>'#','reviews'=>'<a href="#">Read Reviews</a>'],
+  ['name'=>'Breakfast Potatoes','calories'=>120,'protein'=>'0g','img'=>'images/breakfast-potatoes.jpg','link'=>'#','reviews'=>'<a href="#">Read Reviews</a>'],
+  ['name'=>'English Breakfast','calories'=>350,'protein'=>'20g','img'=>'images/english-breakfast.jpg','link'=>'#','reviews'=>'<a href="#">Read Reviews</a>'],
+  ['name'=>'Grilled Chicken Salad','calories'=>350,'protein'=>'30g','img'=>'images/grilled-chicken-salad.jpg','link'=>'#','reviews'=>'<a href="#">Read Reviews</a>'],
+  ['name'=>'Oatmeal with Berries','calories'=>250,'protein'=>'8g','img'=>'images/oatmeal-berries.jpg','link'=>'#','reviews'=>'<a href="#">Read Reviews</a>'],
+  ['name'=>'Quinoa and Black Beans','calories'=>400,'protein'=>'15g','img'=>'images/quinoa-black-beans.jpg','link'=>'#','reviews'=>'<a href="#">Read Reviews</a>'],
+];
+
+$view = $_GET['view'] ?? 'dashboard';
+?>
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>GreenPlate</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body{background:#f1f5f9;font-family:Arial,sans-serif;margin:0}
+  .site-header{background:#2f9e44;color:#fff;padding:12px 20px;display:flex;align-items:center}
+  .site-header .logout-btn{margin-left:auto;background:#dc3545;color:#fff;padding:6px 12px;border:none;border-radius:4px}
+  .site-nav{background:#fff}
+  .site-nav .nav-link{color:#2f9e44!important}
+  .container{max-width:800px;margin:20px auto;padding:0 20px}
+  .card{background:#fff;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.1);margin-bottom:20px}
+  .header-card{background:#2f9e44;color:#fff;padding:12px;font-size:24px;text-align:center;border-top-left-radius:12px;border-top-right-radius:12px}
+  .card-body{padding:20px}
+  .btn-success{background:#2f9e44;color:#fff;border:none;padding:8px 16px;border-radius:4px}
+  .btn-warning{background:#ecc94b;color:#000;border:none;padding:8px 16px;border-radius:4px}
+</style>
+</head><body>
+<header class="site-header">
+  <div class="title">GreenPlate</div>
+  <a href="?logout" class="logout-btn">Logout</a>
+</header>
+<nav class="site-nav">
+  <ul class="nav nav-tabs">
+    <li class="nav-item"><a class="nav-link<?= $view==='dashboard'?' active':''?>" href="?view=dashboard">Dashboard</a></li>
+    <li class="nav-item"><a class="nav-link<?= $view==='myinfo'?' active':''?>" href="?view=myinfo">My Info</a></li>
+    <li class="nav-item"><a class="nav-link<?= $view==='saved'?' active':''?>" href="?view=saved">Saved Meals</a></li>
+  </ul>
+</nav>
+<div class="container">
+
+<?php if ($view==='dashboard'): ?>
+  <div class="card">
+    <div class="header-card">Your Meal Plan</div>
+    <div class="card-body text-center">
+      <p>Age: <?=$user['age']?> | Height: <?=$user['height']?> cm | Weight: <?=$user['weight']?> lbs | Goal: <?=$user['goal']?></p>
+      <?php foreach ($mealPlan as $m): ?>
+        <h5><?=htmlspecialchars($m['name'])?></h5>
+        <img src="<?=htmlspecialchars($m['img'])?>" class="img-fluid mb-2" style="max-height:150px" alt="">
+        <p>Calories: <?=$m['calories']?> | Protein: <?=$m['protein']?></p>
+      <?php endforeach; ?>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="header-card">Recommended Recipes</div>
+    <div class="card-body"><div class="row">
+      <?php foreach ($recipes as $r): ?>
+        <div class="col-md-6 mb-4">
+          <div class="card p-3 h-100">
+            <h5><?=htmlspecialchars($r['name'])?></h5>
+            <a href="<?=htmlspecialchars($r['link'])?>"><img src="<?=htmlspecialchars($r['img'])?>" class="img-fluid mb-2" style="max-height:100px" alt=""></a>
+            <p>Calories: <?=$r['calories']?> | Protein: <?=$r['protein']?></p>
+            <p><?=$r['reviews']?></p>
+            <form method="POST">
+              <?php if (in_array($r['name'], array_column($saved,'meal_name'))): ?>
+                <button class="btn-warning" disabled>In Library</button>
+              <?php else: ?>
+                <input type="hidden" name="meal_name" value="<?=htmlspecialchars($r['name'])?>">
+                <input type="hidden" name="calories"    value="<?=$r['calories']?>">
+                <button type="submit" name="save_meal" class="btn-success">Save Recipe</button>
+              <?php endif; ?>
+            </form>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div></div>
+  </div>
+
+<?php elseif ($view==='myinfo'): ?>
+
+  <div class="card">
+    <div class="header-card">Your Info</div>
+    <div class="card-body">
+      <form method="POST">
+        <label for="age" class="form-label">Age</label>
+        <input
+          id="age"
+          name="age"
+          type="number"
+          class="form-control mb-2"
+          value="<?=htmlspecialchars($user['age'])?>"
+          min="0"
+          required
+        >
+
+        <label for="height" class="form-label">Height (cm)</label>
+        <input
+          id="height"
+          name="height"
+          type="number"
+          step="0.1"
+          class="form-control mb-2"
+          value="<?=htmlspecialchars($user['height'])?>"
+          min="0"
+          required
+        >
+
+        <label for="weight" class="form-label">Weight (lbs)</label>
+        <input
+          id="weight"
+          name="weight"
+          type="number"
+          step="0.1"
+          class="form-control mb-2"
+          value="<?=htmlspecialchars($user['weight'])?>"
+          min="0"
+          required
+        >
+
+        <label for="goal" class="form-label">Goal</label>
+        <select id="goal" name="goal" class="form-select mb-2" required>
+          <option value="gain"     <?=$user['goal']==='gain'?     'selected':''?>>Gain</option>
+          <option value="lose"     <?=$user['goal']==='lose'?     'selected':''?>>Lose</option>
+          <option value="maintain" <?=$user['goal']==='maintain'?'selected':''?>>Maintain</option>
+        </select>
+
+        <button type="submit" name="save_info" class="btn-success">Save Info</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="header-card">Progress</div>
+    <div class="card-body">
+      <form method="POST" class="row gx-2 align-items-center mb-3">
+        <div class="col">
+          <input
+            name="weight_change"
+            type="number"
+            step="0.1"
+            class="form-control"
+            placeholder="Today's Weight (lbs)"
+            required
+          >
+        </div>
+        <div class="col-auto">
+          <button type="submit" name="save_weight_progress" class="btn-success">Save Progress</button>
+        </div>
+      </form>
+      <canvas id="weightChart"></canvas>
+    </div>
+  </div>
+
+<?php else: ?>
+
+  <div class="card">
+    <div class="header-card">Your Saved Meals</div>
+    <div class="card-body">
+      <ul class="list-group">
+        <?php foreach ($saved as $m): ?>
+          <li class="list-group-item d-flex justify-content-between">
+            <?=htmlspecialchars($m['meal_name'])?> (<?=$m['calories']?> cal)
+            <form method="POST"><button type="submit" name="remove_meal" value="<?=$m['id']?>" class="btn btn-danger btn-sm">Remove</button></form>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+  </div>
+
+<?php endif; ?>
+
+</div><!-- /.container -->
+
+<!-- Chat Widget Code -->
+<style>
+  #chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 400px;
+    z-index: 1000;
+  }
+</style>
+<div id="chat-widget" class="card">
+  <div class="header-card">Chat with GreenBot</div>
+  <div class="card-body">
+    <div id="chat-box" style="height:200px; overflow-y:scroll; border:1px solid #ddd; padding:10px; margin-bottom:10px;"></div>
+    <form id="chat-form">
+      <div class="input-group">
+        <input type="text" id="question" class="form-control" placeholder="Ask GreenBot..." required>
+        <button class="btn btn-green" type="submit">Send</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Weight chart
+  new Chart(document.getElementById('weightChart'), {
+    type:'line',
+    data:{
+      labels: <?= json_encode(array_column($progress,'log_date')) ?>,
+      datasets:[{ label:'Weight (lbs)', data: <?= json_encode(array_column($progress,'weight_kg')) ?>, fill:false }]
+    }
+  });
+
+  // Chat widget
+  document.getElementById('chat-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const q = document.getElementById('question').value.trim();
+    if (!q) return;
+    const box = document.getElementById('chat-box');
+    box.innerHTML += '<div><strong>You:</strong> ' + q + '</div>';
+    document.getElementById('question').value = '';
+    const res = await fetch('chatbot.php', {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:'question='+encodeURIComponent(q)
+    });
+    const reply = await res.text();
+    box.innerHTML += '<div><strong>GreenBot:</strong> ' + reply + '</div>';
+    box.scrollTop = box.scrollHeight;
+  });
+</script>
+</body>
+</htm
