@@ -3,91 +3,119 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Cocktail List</title>
+<title>Cocktail Explorer with Personality Quiz</title>
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
 <style>
 body {
-background-color: #f9f9f9;
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 .cocktail-card {
-margin-bottom: 20px;
-border: 1px solid #ddd;
-border-radius: 10px;
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-transition: transform 0.3s ease;
-background: #fff;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  background: #fff;
 }
 .cocktail-card:hover {
-transform: translateY(-5px);
+  transform: translateY(-5px);
 }
 .card-title {
-font-weight: 600;
+  font-weight: 600;
 }
 .form-control, .btn {
-border-radius: 5px;
+  border-radius: 5px;
 }
 .modal-content {
-border-radius: 10px;
+  border-radius: 10px;
 }
 </style>
 </head>
 <body>
 <div class="container">
-<h1 class="my-4 text-center">Cocktail Explorer</h1>
+  <h1 class="my-4 text-center">Cocktail Explorer + Personality Quiz</h1>
 
-<!-- Search + Filters -->
-<div class="form-row mb-4">
-<div class="col-md-4 mb-2">
-<input type="text" id="search" class="form-control" placeholder="Search cocktails..." onkeyup="fetchCocktails()" />
-</div>
-<div class="col-md-3 mb-2">
-<select class="form-control" id="category" onchange="fetchCocktails()">
-<option value="">All Categories</option>
-<option value="Ordinary_Drink">Ordinary Drink</option>
-<option value="Cocktail">Cocktail</option>
-<option value="Shot">Shot</option>
-</select>
-</div>
-<div class="col-md-3 mb-2">
-<select class="form-control" id="alcoholic" onchange="fetchCocktails()">
-<option value="">Any Alcoholic Type</option>
-<option value="Alcoholic">Alcoholic</option>
-<option value="Non_Alcoholic">Non-Alcoholic</option>
-</select>
-</div>
-<div class="col-md-2 mb-2">
-<select class="form-control" id="sort" onchange="fetchCocktails()">
-<option value="">Sort by Name</option>
-<option value="asc">A - Z</option>
-<option value="desc">Z - A</option>
-</select>
-</div>
-</div>
+  <!-- Personality Quiz -->
+  <div class="card p-4 mb-5">
+    <h4>Discover Your Cocktail Personality</h4>
+    <form id="quizForm">
+      <div class="form-group">
+        <label>1. What's your ideal drink flavor?</label><br>
+        <div><input type="radio" name="flavor" value="fruity" required> Fruity</div>
+        <div><input type="radio" name="flavor" value="strong"> Strong</div>
+        <div><input type="radio" name="flavor" value="classic"> Classic</div>
+        <div><input type="radio" name="flavor" value="fun"> Fun and Sweet</div>
+      </div>
+      <div class="form-group">
+        <label>2. Do you enjoy experimenting with drinks?</label><br>
+        <div><input type="radio" name="adventurous" value="yes" required> Yes</div>
+        <div><input type="radio" name="adventurous" value="no"> No</div>
+      </div>
+      <div class="form-group">
+        <label>3. Do you prefer alcoholic or non-alcoholic drinks?</label><br>
+        <div><input type="radio" name="alcohol" value="alcoholic" required> Alcoholic</div>
+        <div><input type="radio" name="alcohol" value="non_alcoholic"> Non-Alcoholic</div>
+      </div>
+      <button type="submit" class="btn btn-success">See My Cocktail Type</button>
+    </form>
+    <div id="result" class="mt-4" style="display:none;">
+      <div class="alert alert-info"><strong>Your Cocktail Personality:</strong> <span id="resultText"></span></div>
+    </div>
+  </div>
 
-<!-- Cocktails -->
-<div class="row" id="cocktail-container"></div>
+  <!-- Search + Filters -->
+  <div class="form-row mb-4">
+    <div class="col-md-4 mb-2">
+      <input type="text" id="search" class="form-control" placeholder="Search cocktails..." onkeyup="fetchCocktails()" />
+    </div>
+    <div class="col-md-3 mb-2">
+      <select class="form-control" id="category" onchange="fetchCocktails()">
+        <option value="">All Categories</option>
+        <option value="Ordinary_Drink">Ordinary Drink</option>
+        <option value="Cocktail">Cocktail</option>
+        <option value="Shot">Shot</option>
+      </select>
+    </div>
+    <div class="col-md-3 mb-2">
+      <select class="form-control" id="alcoholic" onchange="fetchCocktails()">
+        <option value="">Any Alcoholic Type</option>
+        <option value="Alcoholic">Alcoholic</option>
+        <option value="Non_Alcoholic">Non-Alcoholic</option>
+      </select>
+    </div>
+    <div class="col-md-2 mb-2">
+      <select class="form-control" id="sort" onchange="fetchCocktails()">
+        <option value="">Sort by Name</option>
+        <option value="asc">A - Z</option>
+        <option value="desc">Z - A</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Cocktails -->
+  <div class="row" id="cocktail-container"></div>
 </div>
 
 <!-- Modal for Recipe -->
 <div class="modal fade" id="recipeModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
-<div class="modal-dialog modal-lg" role="document">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title" id="modalTitle">Cocktail Recipe</h5>
-<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-<span>&times;</span>
-</button>
-</div>
-<div class="modal-body">
-<img id="modalImage" src="" alt="Cocktail Image" class="img-fluid rounded mb-3"/>
-<h6>Ingredients:</h6>
-<ul id="modalIngredients" class="mb-3"></ul>
-<h6>Instructions:</h6>
-<p id="modalInstructions"></p>
-</div>
-</div>
-</div>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">Cocktail Recipe</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <img id="modalImage" src="" alt="Cocktail Image" class="img-fluid rounded mb-3"/>
+        <h6>Ingredients:</h6>
+        <ul id="modalIngredients" class="mb-3"></ul>
+        <h6>Instructions:</h6>
+        <p id="modalInstructions"></p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Scripts -->
@@ -96,78 +124,120 @@ const apiKey = "1";
 const baseUrl = `https://www.thecocktaildb.com/api/json/v1/${apiKey}/`;
 let cocktails = [];
 
+// Fetching Cocktails
 async function fetchCocktails() {
-const search = document.getElementById('search').value;
-const category = document.getElementById('category').value;
-const alcoholic = document.getElementById('alcoholic').value;
-const sort = document.getElementById('sort').value;
+  const search = document.getElementById('search').value;
+  const category = document.getElementById('category').value;
+  const alcoholic = document.getElementById('alcoholic').value;
+  const sort = document.getElementById('sort').value;
 
-let url = `${baseUrl}search.php?f=a`;
+  let url = `${baseUrl}search.php?f=a`;
+  if (search) {
+    url = `${baseUrl}search.php?s=${search}`;
+  } else if (category) {
+    url = `${baseUrl}filter.php?c=${category}`;
+  } else if (alcoholic) {
+    url = `${baseUrl}filter.php?a=${alcoholic}`;
+  }
 
-if (search) {
-url = `${baseUrl}search.php?s=${search}`;
-} else if (category) {
-url = `${baseUrl}filter.php?c=${category}`;
-} else if (alcoholic) {
-url = `${baseUrl}filter.php?a=${alcoholic}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    cocktails = data.drinks || [];
+
+    if (sort === 'asc') {
+      cocktails.sort((a, b) => a.strDrink.localeCompare(b.strDrink));
+    } else if (sort === 'desc') {
+      cocktails.sort((a, b) => b.strDrink.localeCompare(a.strDrink));
+    }
+
+    displayCocktails(cocktails);
+  } catch (err) {
+    console.error("Fetch error:", err);
+    document.getElementById('cocktail-container').innerHTML = "<p>Unable to load cocktails.</p>";
+  }
 }
 
-try {
-const res = await fetch(url);
-const data = await res.json();
-cocktails = data.drinks || [];
-
-if (sort === 'asc') {
-cocktails.sort((a, b) => a.strDrink.localeCompare(b.strDrink));
-} else if (sort === 'desc') {
-cocktails.sort((a, b) => b.strDrink.localeCompare(a.strDrink));
-}
-
-displayCocktails(cocktails);
-} catch (err) {
-console.error("Fetch error:", err);
-document.getElementById('cocktail-container').innerHTML = "<p>Unable to load cocktails.</p>";
-}
-}
-
+// Displaying Cocktails
 function displayCocktails(cocktails) {
-const container = document.getElementById('cocktail-container');
-container.innerHTML = '';
-
-cocktails.forEach(drink => {
-container.innerHTML += `
-<div class="col-md-4">
-<div class="card cocktail-card">
-<img src="${drink.strDrinkThumb}" class="card-img-top" alt="${drink.strDrink}">
-<div class="card-body">
-<h5 class="card-title">${drink.strDrink}</h5>
-<button class="btn btn-primary" onclick="showRecipe(${drink.idDrink})">View Recipe</button>
-</div>
-</div>
-</div>
-`;
-});
+  const container = document.getElementById('cocktail-container');
+  container.innerHTML = '';
+  cocktails.forEach(drink => {
+    container.innerHTML += `
+    <div class="col-md-4">
+      <div class="card cocktail-card">
+        <img src="${drink.strDrinkThumb}" class="card-img-top" alt="${drink.strDrink}">
+        <div class="card-body">
+          <h5 class="card-title">${drink.strDrink}</h5>
+          <button class="btn btn-primary" onclick="showRecipe(${drink.idDrink})">View Recipe</button>
+        </div>
+      </div>
+    </div>
+    `;
+  });
 }
 
+// Show Modal Recipe
 async function showRecipe(id) {
-const res = await fetch(`${baseUrl}lookup.php?i=${id}`);
-const data = await res.json();
-const drink = data.drinks[0];
+  const res = await fetch(`${baseUrl}lookup.php?i=${id}`);
+  const data = await res.json();
+  const drink = data.drinks[0];
 
-let ingredientsHtml = '';
-for (let i = 1; i <= 15; i++) {
-const ing = drink[`strIngredient${i}`];
-const measure = drink[`strMeasure${i}`];
-if (ing) ingredientsHtml += `<li>${measure || ''} ${ing}</li>`;
+  let ingredientsHtml = '';
+  for (let i = 1; i <= 15; i++) {
+    const ing = drink[`strIngredient${i}`];
+    const measure = drink[`strMeasure${i}`];
+    if (ing) ingredientsHtml += `<li>${measure || ''} ${ing}</li>`;
+  }
+
+  document.getElementById('modalTitle').innerText = drink.strDrink;
+  document.getElementById('modalImage').src = drink.strDrinkThumb;
+  document.getElementById('modalInstructions').innerText = drink.strInstructions;
+  document.getElementById('modalIngredients').innerHTML = ingredientsHtml;
+
+  $('#recipeModal').modal('show');
 }
 
-document.getElementById('modalTitle').innerText = drink.strDrink;
-document.getElementById('modalImage').src = drink.strDrinkThumb;
-document.getElementById('modalInstructions').innerText = drink.strInstructions;
-document.getElementById('modalIngredients').innerHTML = ingredientsHtml;
+// Personality Quiz Logic
+const quizForm = document.getElementById('quizForm');
+quizForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const form = new FormData(quizForm);
+  let score = { fruity: 0, strong: 0, classic: 0, fun: 0 };
 
-$('#recipeModal').modal('show');
-}
+  switch (form.get("flavor")) {
+    case "fruity": score.fruity += 2; break;
+    case "strong": score.strong += 2; break;
+    case "classic": score.classic += 2; break;
+    case "fun": score.fun += 2; break;
+  }
+
+  if (form.get("adventurous") === "yes") {
+    score.fruity++;
+    score.fun++;
+  } else {
+    score.classic++;
+  }
+
+  if (form.get("alcohol") === "alcoholic") {
+    score.strong++;
+    score.classic++;
+  } else {
+    score.fruity++;
+    score.fun++;
+  }
+
+  const result = Object.entries(score).sort((a,b)=>b[1]-a[1])[0][0];
+  const resultText = {
+    fruity: "You're a Fruity Explorer! You love refreshing, colorful drinks.",
+    strong: "You're a Strong Spirits Seeker! Bold, confident, and enjoy a powerful cocktail.",
+    classic: "You're a Classic Connoisseur! You appreciate timeless and elegant mixes.",
+    fun: "You're a Sober Mixer or Fun Lover! You bring energy and flavor to any party."
+  };
+
+  document.getElementById('resultText').innerText = resultText[result];
+  document.getElementById('result').style.display = 'block';
+});
 
 window.onload = fetchCocktails;
 </script>
